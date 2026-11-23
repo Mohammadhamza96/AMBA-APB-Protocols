@@ -238,7 +238,7 @@ module tb;
             $display("FAIL: Test 8");
 
 
-        // TEST 9: Intentionally wrong expected value
+        // TEST 9: wrong 
 
         $display("TEST 9: Negative test for Slave 1");
 
@@ -260,7 +260,7 @@ module tb;
             $display("EXPECTED FAIL: Read data is not 99");
 
 
-        // TEST 10: Intentionally wrong expected value
+        // TEST 10: wrong 
 
         $display("TEST 10: Negative test for Slave 2");
 
