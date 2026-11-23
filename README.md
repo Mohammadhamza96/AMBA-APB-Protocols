@@ -86,6 +86,4 @@ The waveform can be used to inspect the clock, reset, address, write data, read 
 - **2 negative checks** intentionally compare the read data against an incorrect value.
 - The supplied simulation output shows the functional checks passing and the two negative checks reporting the expected mismatches.
 
----
 
-*This README describes the circuit and testbench behavior shown in the supplied project document. Add or update the RTL file list and simulator-specific commands to match the final repository structure.*
