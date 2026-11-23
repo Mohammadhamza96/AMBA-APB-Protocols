@@ -1,0 +1,291 @@
+
+`timescale 1ns/1ps
+
+module tb;
+
+    reg PCLK, RESET, VALID, WRITE;
+    reg [7:0] ADDR;
+    reg [31:0] WDATA;
+    reg READY1, READY2;
+
+    wire [7:0] PADDR;
+    wire [31:0] PWDATA;
+    wire PWRITE, PSEL1, PSEL2;
+    wire PENABLE, PREADY, SETUP, IDLE;
+    wire [31:0] RDATA_OUT;
+    wire [31:0] SLAVE1_REG, SLAVE2_REG;
+
+    apb_top dut (
+        .PCLK(PCLK),
+        .RESET(RESET),
+        .VALID(VALID),
+        .WRITE(WRITE),
+        .ADDR(ADDR),
+        .WDATA(WDATA),
+        .READY1(READY1),
+        .READY2(READY2),
+        .PADDR(PADDR),
+        .PWDATA(PWDATA),
+        .PWRITE(PWRITE),
+        .PSEL1(PSEL1),
+        .PSEL2(PSEL2),
+        .PENABLE(PENABLE),
+        .PREADY(PREADY),
+        .SETUP(SETUP),
+        .IDLE(IDLE),
+        .RDATA_OUT(RDATA_OUT),
+        .SLAVE1_REG(SLAVE1_REG),
+        .SLAVE2_REG(SLAVE2_REG)
+    );
+
+    initial PCLK = 0;
+    always #5 PCLK = ~PCLK;
+
+    initial begin
+      
+      $dumpfile("dump.vcd");
+      $dumpvars(0, tb);
+
+        RESET = 1;
+        VALID = 0;
+        WRITE = 0;
+        ADDR = 0;
+        WDATA = 0;
+        READY1 = 1;
+        READY2 = 1;
+
+        repeat (2) @(negedge PCLK);
+        RESET = 0;
+
+        // TEST 1: Write 25 to Slave 1
+
+        $display("TEST 1: Write to Slave 1");
+
+        @(negedge PCLK);
+        ADDR = 8'h00;
+        WDATA = 32'h00000025;
+        WRITE = 1;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (SLAVE1_REG == 32'h00000025)
+            $display("PASS: Slave 1 stored 25");
+        else
+            $display("FAIL: Test 1");
+
+
+        // TEST 2: Write 11 to Slave 2
+
+        $display("TEST 2: Write to Slave 2");
+
+        @(negedge PCLK);
+        ADDR = 8'h80;
+        WDATA = 32'h00000011;
+        WRITE = 1;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (SLAVE2_REG == 32'h00000011)
+            $display("PASS: Slave 2 stored 11");
+        else
+            $display("FAIL: Test 2");
+
+
+        // TEST 3: Read 11 from Slave 2
+
+        $display("TEST 3: Read from Slave 2");
+
+        @(negedge PCLK);
+        ADDR = 8'h80;
+        WRITE = 0;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (RDATA_OUT == 32'h00000011)
+            $display("PASS: Read data is 11");
+        else
+            $display("FAIL: Test 3");
+
+
+        // TEST 4: Write 50 to Slave 1
+
+        $display("TEST 4: Write to Slave 1");
+
+        @(negedge PCLK);
+        ADDR = 8'h00;
+        WDATA = 32'h00000050;
+        WRITE = 1;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (SLAVE1_REG == 32'h00000050)
+            $display("PASS: Slave 1 stored 50");
+        else
+            $display("FAIL: Test 4");
+
+
+        // TEST 5: Read 50 from Slave 1
+
+        $display("TEST 5: Read from Slave 1");
+
+        @(negedge PCLK);
+        ADDR = 8'h00;
+        WRITE = 0;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (RDATA_OUT == 32'h00000050)
+            $display("PASS: Read data is 50");
+        else
+            $display("FAIL: Test 5");
+
+
+        // TEST 6: Write 100 to Slave 2
+
+        $display("TEST 6: Write 100 to Slave 2");
+
+        @(negedge PCLK);
+        ADDR = 8'h80;
+        WDATA = 32'h00000064;
+        WRITE = 1;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (SLAVE2_REG == 32'h00000064)
+            $display("PASS: Slave 2 stored 100");
+        else
+            $display("FAIL: Test 6");
+
+
+        // TEST 7: Read 100 from Slave 2
+
+        $display("TEST 7: Read 100 from Slave 2");
+
+        @(negedge PCLK);
+        ADDR = 8'h80;
+        WRITE = 0;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (RDATA_OUT == 32'h00000064)
+            $display("PASS: Read data is 100");
+        else
+            $display("FAIL: Test 7");
+
+
+        // TEST 8: Write zero to Slave 1
+
+        $display("TEST 8: Write zero to Slave 1");
+
+        @(negedge PCLK);
+        ADDR = 8'h00;
+        WDATA = 32'h00000000;
+        WRITE = 1;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (SLAVE1_REG == 32'h00000000)
+            $display("PASS: Slave 1 stored zero");
+        else
+            $display("FAIL: Test 8");
+
+
+        // TEST 9: Intentionally wrong expected value
+
+        $display("TEST 9: Negative test for Slave 1");
+
+        @(negedge PCLK);
+        ADDR = 8'h00;
+        WRITE = 0;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (RDATA_OUT == 32'h00000099)
+            $display("PASS: Test 9");
+        else
+            $display("EXPECTED FAIL: Read data is not 99");
+
+
+        // TEST 10: Intentionally wrong expected value
+
+        $display("TEST 10: Negative test for Slave 2");
+
+        @(negedge PCLK);
+        ADDR = 8'h80;
+        WRITE = 0;
+        VALID = 1;
+
+        @(negedge PCLK);
+        VALID = 0;
+
+        @(negedge PCLK);
+        @(posedge PCLK);
+        #1;
+
+        if (RDATA_OUT == 32'h00000099)
+            $display("PASS: Test 10");
+        else
+            $display("EXPECTED FAIL: Read data is not 99");
+
+
+        $display("All 10 test cases completed.");
+
+        $finish;
+
+    end
+
+endmodule
